@@ -1,7 +1,7 @@
 import 'dart:io'; // Required for handling File
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Required for camera/gallery
-import 'processing_page.dart';
+import 'detection_results_page.dart'; // Import the new results page
 
 class CapturePage extends StatefulWidget {
   const CapturePage({super.key});
@@ -66,9 +66,8 @@ class _CapturePageState extends State<CapturePage> {
                   OutlinedButton(
                     onPressed: () {},
                     style: outlinedButtonStyle.copyWith(
-                      // FIXED: Use WidgetStateProperty
-                      minimumSize: WidgetStateProperty.all(Size.zero),
-                      padding: WidgetStateProperty.all(
+                      minimumSize: MaterialStateProperty.all(Size.zero),
+                      padding: MaterialStateProperty.all(
                         const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
@@ -82,10 +81,9 @@ class _CapturePageState extends State<CapturePage> {
               const SizedBox(height: 30),
 
               // --- Image Container ---
-              // --- Image Container ---
               Container(
                 height:
-                   MediaQuery.of(context).size.height * 0.6,
+                    MediaQuery.of(context).size.height * 0.6,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
@@ -104,14 +102,32 @@ class _CapturePageState extends State<CapturePage> {
                   borderRadius: BorderRadius.circular(
                     20,
                   ), // This should match the Container
-                  // This is your code snippet
-                  child:
-                      _image == null
-                          ? Image.asset(
-                            'assets/images/calf_placeholder.png',
-                            fit: BoxFit.cover,
-                          )
-                          : Image.file(_image!, fit: BoxFit.cover),
+                  
+                  // --- THIS IS THE FIX ---
+                  // We check if _image is null.
+                  // If it is, we show a placeholder. Otherwise, we show the image file.
+                  child: _image == null
+                      
+                      // **FIXED WIDGET:** This placeholder won't crash if assets aren't configured.
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.photo_camera_outlined,
+                              size: 80,
+                              color: Colors.black54,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Capture or Upload an Image',
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.black54),
+                            ),
+                          ],
+                        )
+                      
+                      // This part is correct and only runs when _image is not null.
+                      : Image.file(_image!, fit: BoxFit.cover),
                 ),
               ),
               
@@ -122,8 +138,7 @@ class _CapturePageState extends State<CapturePage> {
                 onPressed:
                     () => _getImage(ImageSource.gallery), // Opens Gallery
                 style: outlinedButtonStyle.copyWith(
-                  // FIXED: Use WidgetStateProperty
-                  minimumSize: WidgetStateProperty.all(
+                  minimumSize: MaterialStateProperty.all(
                     const Size(double.infinity, 50),
                   ),
                 ),
@@ -145,12 +160,12 @@ class _CapturePageState extends State<CapturePage> {
                     onPressed: () {
                       // First, check if an image is actually selected
                       if (_image != null) {
-                        // If yes, push to the new processing page
+                        // If yes, push to the new detection results page
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => ProcessingPage(imageFile: _image!),
+                                (context) => DetectionResultsPage(imageFile: _image!),
                           ),
                         );
                       } else {
@@ -166,9 +181,8 @@ class _CapturePageState extends State<CapturePage> {
                       }
                     }, // <-- End of onPressed
                     style: outlinedButtonStyle.copyWith(
-                      // FIXED: Wrap colors in WidgetStateProperty.all()
-                      backgroundColor: WidgetStateProperty.all(Colors.black),
-                      foregroundColor: WidgetStateProperty.all(Colors.white),
+                      backgroundColor: MaterialStateProperty.all(Colors.black),
+                      foregroundColor: MaterialStateProperty.all(Colors.white),
                     ),
                     child: const Text('Detect'),
                   ),
