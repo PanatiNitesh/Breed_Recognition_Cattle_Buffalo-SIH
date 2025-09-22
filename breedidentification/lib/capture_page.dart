@@ -1,7 +1,8 @@
-import 'dart:io'; // Required for handling File
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Required for camera/gallery
-import 'detection_results_page.dart'; // Import the new results page
+import 'package:image_picker/image_picker.dart';
+import 'my_family_page.dart';        // Import the family page for navigation
+import 'processing_page.dart';      // Import the processing page
 
 class CapturePage extends StatefulWidget {
   const CapturePage({super.key});
@@ -11,11 +12,9 @@ class CapturePage extends StatefulWidget {
 }
 
 class _CapturePageState extends State<CapturePage> {
-  // This variable will hold the image file after picking
   File? _image;
   final ImagePicker _picker = ImagePicker();
 
-  // This function handles picking an image from gallery or camera
   Future<void> _getImage(ImageSource source) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
 
@@ -28,14 +27,13 @@ class _CapturePageState extends State<CapturePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This defines the style for your buttons to look consistent
     final ButtonStyle outlinedButtonStyle = OutlinedButton.styleFrom(
       foregroundColor: Colors.black,
       backgroundColor: Colors.white,
-      minimumSize: const Size(150, 50), // Set a good size
+      minimumSize: const Size(150, 50),
       side: const BorderSide(color: Colors.black, width: 1.5),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.0), // Makes it rounded
+        borderRadius: BorderRadius.circular(30.0),
       ),
       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
@@ -47,11 +45,9 @@ class _CapturePageState extends State<CapturePage> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              // --- Top Bar (Back Arrow & "Cattle Family") ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Back Button
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.black, width: 1.5),
@@ -62,16 +58,17 @@ class _CapturePageState extends State<CapturePage> {
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  // "Cattle Family" Button
                   OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                       Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const MyFamilyPage()),
+                      );
+                    },
                     style: outlinedButtonStyle.copyWith(
                       minimumSize: MaterialStateProperty.all(Size.zero),
                       padding: MaterialStateProperty.all(
-                        const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
                     ),
                     child: const Text('Cattle Family'),
@@ -80,10 +77,8 @@ class _CapturePageState extends State<CapturePage> {
               ),
               const SizedBox(height: 30),
 
-              // --- Image Container ---
               Container(
-                height:
-                    MediaQuery.of(context).size.height * 0.6,
+                height: MediaQuery.of(context).size.height * 0.6,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
@@ -99,87 +94,63 @@ class _CapturePageState extends State<CapturePage> {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ), // This should match the Container
-                  
-                  // --- THIS IS THE FIX ---
-                  // We check if _image is null.
-                  // If it is, we show a placeholder. Otherwise, we show the image file.
+                  borderRadius: BorderRadius.circular(20),
+                  // --- THIS IS THE CHANGE ---
+                  // It now shows your image asset when no file is selected.
                   child: _image == null
-                      
-                      // **FIXED WIDGET:** This placeholder won't crash if assets aren't configured.
-                      ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.photo_camera_outlined,
-                              size: 80,
-                              color: Colors.black54,
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Capture or Upload an Image',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.black54),
-                            ),
-                          ],
+                      ? Image.asset(
+                          'assets/images/calf_placeholder.png',
+                          fit: BoxFit.cover,
+                          // Optional: Add an error builder in case the asset fails to load
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Text(
+                                'Placeholder not found.',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            );
+                          },
                         )
-                      
-                      // This part is correct and only runs when _image is not null.
                       : Image.file(_image!, fit: BoxFit.cover),
                 ),
               ),
               
-              const Spacer(), // Pushes buttons to the bottom
-              // --- Bottom Buttons ---
-              // "Upload" Button
+              const Spacer(),
               OutlinedButton(
-                onPressed:
-                    () => _getImage(ImageSource.gallery), // Opens Gallery
+                onPressed: () => _getImage(ImageSource.gallery),
                 style: outlinedButtonStyle.copyWith(
-                  minimumSize: MaterialStateProperty.all(
-                    const Size(double.infinity, 50),
-                  ),
+                  minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
                 ),
                 child: const Text('Upload'),
               ),
               const SizedBox(height: 15),
 
-              // "Capture" and "Detect" Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                    onPressed:
-                        () => _getImage(ImageSource.camera), // Opens Camera
+                    onPressed: () => _getImage(ImageSource.camera),
                     style: outlinedButtonStyle,
                     child: const Text('Capture'),
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      // First, check if an image is actually selected
                       if (_image != null) {
-                        // If yes, push to the new detection results page
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => DetectionResultsPage(imageFile: _image!),
+                            builder: (context) => ProcessingPage(imageFile: _image!),
                           ),
                         );
                       } else {
-                        // If no image, show an error message
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text(
-                              'Please capture or upload an image first.',
-                            ),
+                            content: Text('Please capture or upload an image first.'),
                             backgroundColor: Colors.red,
                           ),
                         );
                       }
-                    }, // <-- End of onPressed
+                    },
                     style: outlinedButtonStyle.copyWith(
                       backgroundColor: MaterialStateProperty.all(Colors.black),
                       foregroundColor: MaterialStateProperty.all(Colors.white),
@@ -195,3 +166,4 @@ class _CapturePageState extends State<CapturePage> {
     );
   }
 }
+

@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:breedidentification/detection_results_page.dart';
 import 'package:flutter/material.dart';
-import 'results_page.dart'; // Import the results page
+ // Import the results page
 import 'package:video_player/video_player.dart'; // Import the video player
 
 class ProcessingPage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _ProcessingPageState extends State<ProcessingPage> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const ResultsPage()),
+        MaterialPageRoute(builder: (context) => DetectionResultsPage(imageFile: widget.imageFile)),
       );
     }
   }
